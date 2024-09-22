@@ -10,55 +10,46 @@ import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.maps.model.LatLng
 
-
 class GeofenceHelper(base: Context?) : ContextWrapper(base) {
-    private var pendingIntent: PendingIntent? = null
 
-    fun getGeofencingRequest(geofence: Geofence?): GeofencingRequest {
+    fun getGeofencingRequest(geofence: Geofence): GeofencingRequest {
         return GeofencingRequest.Builder()
-            .addGeofence(geofence!!)
+            .addGeofence(geofence)
             .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
             .build()
     }
 
-    fun getGeofence(ID: String?, latLng: LatLng, radius: Float, transitionTypes: Int): Geofence {
+    fun getGeofence(id: String, latLng: LatLng, radius: Float, transitionTypes: Int): Geofence {
         return Geofence.Builder()
             .setCircularRegion(latLng.latitude, latLng.longitude, radius)
-            .setRequestId(ID!!)
+            .setRequestId(id)
             .setTransitionTypes(transitionTypes)
             .setLoiteringDelay(5000)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .build()
     }
 
-    fun getPendingIntent(): PendingIntent? {
-        if (pendingIntent != null) {
-            return pendingIntent
-        }
-        val intent = Intent(
+    fun getPendingIntent(): PendingIntent {
+        val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+        return PendingIntent.getBroadcast(
             this,
-            GeofenceBroadcastReceiver::class.java
+            2607,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
-        pendingIntent =
-            PendingIntent.getBroadcast(this, 2607, intent, PendingIntent.FLAG_UPDATE_CURRENT or  PendingIntent.FLAG_IMMUTABLE)
-
-        return pendingIntent
     }
 
     fun getErrorString(e: Exception): String {
-        if (e is ApiException) {
+        return if (e is ApiException) {
             when (e.statusCode) {
-                GeofenceStatusCodes
-                    .GEOFENCE_NOT_AVAILABLE -> return "GEOFENCE_NOT_AVAILABLE"
-
-                GeofenceStatusCodes
-                    .GEOFENCE_TOO_MANY_GEOFENCES -> return "GEOFENCE_TOO_MANY_GEOFENCES"
-
-                GeofenceStatusCodes
-                    .GEOFENCE_TOO_MANY_PENDING_INTENTS -> return "GEOFENCE_TOO_MANY_PENDING_INTENTS"
+                GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE -> "GEOFENCE_NOT_AVAILABLE"
+                GeofenceStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES -> "GEOFENCE_TOO_MANY_GEOFENCES"
+                GeofenceStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS -> "GEOFENCE_TOO_MANY_PENDING_INTENTS"
+                else -> e.localizedMessage ?: "Unknown error"
             }
+        } else {
+            e.localizedMessage ?: "Unknown error"
         }
-        return e.localizedMessage?.toString() !!
     }
 
     companion object {

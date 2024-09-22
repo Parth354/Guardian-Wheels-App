@@ -8,32 +8,38 @@ import android.widget.Toast
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 
-
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // TODO: This method is called when the BroadcastReceiver is receiving
-        // an Intent broadcast.
-//        Toast.makeText(context, "Geofence triggered...", Toast.LENGTH_SHORT).show();
-
         val notificationHelper = NotificationHelper(context)
-
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
+        if(geofencingEvent == null){
+            showToast(context, "Geofence not Available...")
+        }
 
-        if (geofencingEvent!!.hasError()) {
+        if (geofencingEvent?.hasError() == true) {
             Log.d(TAG, "onReceive: Error receiving geofence event...")
             return
         }
 
-        val geofenceList = geofencingEvent.triggeringGeofences
-        for (geofence in geofenceList!!) {
-            Log.d(TAG, "onReceive: " + geofence.requestId)
-        }
-        //        Location location = geofencingEvent.getTriggeringLocation();
-        val transitionType = geofencingEvent.geofenceTransition
+        val geofenceList = geofencingEvent?.triggeringGeofences
+        if (geofenceList != null) {
+            for (geofence in geofenceList) {
+                Log.d(TAG, "onReceive: Geofence triggered: ${geofence.requestId}")
+            }
 
+            val transitionType = geofencingEvent.geofenceTransition
+            handleGeofenceTransition(context, transitionType, notificationHelper)
+        }
+    }
+
+    private fun handleGeofenceTransition(
+        context: Context,
+        transitionType: Int,
+        notificationHelper: NotificationHelper
+    ) {
         when (transitionType) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                Toast.makeText(context, "GEOFENCE_TRANSITION_ENTER", Toast.LENGTH_SHORT).show()
+                showToast(context, "GEOFENCE_TRANSITION_ENTER")
                 notificationHelper.sendHighPriorityNotification(
                     "GEOFENCE_TRANSITION_ENTER", "",
                     MapsActivity::class.java
@@ -41,7 +47,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             }
 
             Geofence.GEOFENCE_TRANSITION_DWELL -> {
-                Toast.makeText(context, "GEOFENCE_TRANSITION_DWELL", Toast.LENGTH_SHORT).show()
+                showToast(context, "GEOFENCE_TRANSITION_DWELL")
                 notificationHelper.sendHighPriorityNotification(
                     "GEOFENCE_TRANSITION_DWELL", "",
                     MapsActivity::class.java
@@ -49,16 +55,24 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             }
 
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                Toast.makeText(context, "GEOFENCE_TRANSITION_EXIT", Toast.LENGTH_SHORT).show()
+                showToast(context, "GEOFENCE_TRANSITION_EXIT")
                 notificationHelper.sendHighPriorityNotification(
                     "GEOFENCE_TRANSITION_EXIT", "",
                     MapsActivity::class.java
                 )
             }
+
+            else -> {
+                Log.d(TAG, "onReceive: Unknown transition type: $transitionType")
+            }
         }
     }
 
+    private fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     companion object {
-        private const val TAG = "GeofenceBroadcastReceiv"
+        private const val TAG = "GeofenceBroadcastReceiver"
     }
 }
