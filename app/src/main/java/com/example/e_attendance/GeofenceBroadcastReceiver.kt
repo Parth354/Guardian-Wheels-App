@@ -39,25 +39,23 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     ) {
         when (transitionType) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                showToast(context, "GEOFENCE_TRANSITION_ENTER")
                 notificationHelper.sendHighPriorityNotification(
-                    "GEOFENCE_TRANSITION_ENTER", "",
+                    "Car entered the Geofence", "",
                     MapsActivity::class.java
                 )
             }
 
-            Geofence.GEOFENCE_TRANSITION_DWELL -> {
-                showToast(context, "GEOFENCE_TRANSITION_DWELL")
-                notificationHelper.sendHighPriorityNotification(
-                    "GEOFENCE_TRANSITION_DWELL", "",
-                    MapsActivity::class.java
-                )
-            }
+//            Geofence.GEOFENCE_TRANSITION_DWELL -> {
+//                showToast(context, "GEOFENCE_TRANSITION_DWELL")
+//                notificationHelper.sendHighPriorityNotification(
+//                    "GEOFENCE_TRANSITION_DWELL", "",
+//                    MapsActivity::class.java
+//                )
+//            }
 
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                showToast(context, "GEOFENCE_TRANSITION_EXIT")
                 notificationHelper.sendHighPriorityNotification(
-                    "GEOFENCE_TRANSITION_EXIT", "",
+                    "Car exited the Geofence", "",
                     MapsActivity::class.java
                 )
             }
